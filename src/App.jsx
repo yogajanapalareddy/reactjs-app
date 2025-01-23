@@ -8,8 +8,9 @@ function App() {
         <h1>Welcome to My ReactJS App</h1>
         <p>This is a simple ReactJS application.</p>
         <p>HI YOGANANDA JANAPALA THIS IS YOUR APP.</p>
-        <p>learn how to code and build frontend applications.</p>
-        <a
+        <p>learn how to code and build fontend applications.</p>
+        <p>end of your file</p>
+	  <a
           className="App-link"
           href="https://reactjs.org"
           target="_blank"
