@@ -12,13 +12,19 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                echo 'Cloning feature branch...'
-                git branch: 'main', credentialsId: 'git-yoga', url: 'https://github.com/yogajanapalareddy/reactjs-app.git'
+               script {
+                    def branch = env.BRANCH_NAME
+                    if (branch == 'feature-*') {
+                        echo "Triggering deployment for feature-branch"
+                    } else {
+                        echo "Skipping build"
+                        currentBuild.result = 'ABORTED'
+                    }
+                }
             }
-        }
-        
+        }        
         stage('Build Code') {
             steps {
                 echo 'Building ReactJS code...'
