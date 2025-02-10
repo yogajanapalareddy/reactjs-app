@@ -51,7 +51,7 @@ pipeline {
                     echo 'Deploying ReactJS application to NGINX using Ansible...'
                     
                     // Copy artifact to Ansible machine (if not already there)
-                    // Execute Ansible playbook
+                    // Execute Ansible playbook files
                     sh """
                     sudo ansible-playbook ${PLAYBOOK_FILE} -i ${INVENTORY_FILE}
                     """
