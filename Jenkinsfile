@@ -1,33 +1,57 @@
-pipeline{
-    agent any
-    
-    stages{
-        stage("Git Checkout"){
-            steps{
-                git url:"https://github.com/javahometech/reactjs-app",branch:"main"
-            }
+pipeline {
+    agent {
+        node {
+            label 'Jenkins_Agent'
         }
-        stage("Docker Build"){
-            steps{
-                sh "docker build -t kammana/react-app:${currentBuild.number} ."
-            }
-        }
-        stage("Docker Push"){
-            steps{
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'docker_password', usernameVariable: 'docker_user')]) {
-                    sh "docker login -u ${docker_user} -p ${docker_password}"
-                }
-                sh "docker push kammana/react-app:${currentBuild.number}"
-            }
-        }
-        stage("Dev Deploy"){
-            steps{
-                sshagent(['docker-dev']) {
+    }
         
-                    sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.15.57 docker rm -f react 2>/dev/null "
-                    sh "ssh ec2-user@172.31.15.57 docker run -d -p 80:80 --name=react kammana/react-app:${currentBuild.number}"
+    environment {
+        ARTIFACT_DIR = "/var/lib/jenkins/artifacts"
+        PLAYBOOK_FILE = "/home/ansimast/React_App_Test/my-app/ansible-playbooks/deploy.yml"
+        INVENTORY_FILE = "/etc/ansible/hosts"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                echo 'Cloning feature branch...'
+                git branch: 'main', credentialsId: 'git-yoga', url: 'https://github.com/yogajanapalareddy/reactjs-app.git'
+            }
+        }
+        
+        stage('Build Code') {
+            steps {
+                echo 'Building ReactJS code...'
+                sh '''
+                pwd
+                npm install
+                pwd
+                npm run build
+                mkdir -p ${ARTIFACT_DIR}
+                pwd
+                tar -czf ${ARTIFACT_DIR}/reactjs.tar.gz dist
+                '''
+            }
+        }
+        
+        stage('Deploy Artifact') {
+            agent {
+                node {
+                    label 'AnsibleMaster_Agent'
+                }
+            }
+            steps {
+                script {
+                    echo 'Deploying ReactJS application to NGINX using Ansible...'
+                    
+                    // Copy artifact to Ansible machine (if not already there)
+                    // Execute Ansible playbook
+                    sh """
+                    sudo ansible-playbook ${PLAYBOOK_FILE} -i ${INVENTORY_FILE}
+                    """
                 }
             }
         }
     }
 }
+
