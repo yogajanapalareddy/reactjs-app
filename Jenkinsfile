@@ -12,19 +12,13 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-               script {
-                    def branch = env.BRANCH_NAME
-                    if (branch == 'feature-*') {
-                        echo "Triggering deployment for feature-branch"
-                    } else {
-                        echo "Skipping build"
-                        currentBuild.result = 'ABORTED'
-                    }
-                }
+                echo 'Cloning feature branch...'
+                git branch: 'main', credentialsId: 'git-yoga', url: 'https://github.com/yogajanapalareddy/reactjs-app.git'
             }
-        }        
+        }
+        
         stage('Build Code') {
             steps {
                 echo 'Building ReactJS code...'
@@ -51,7 +45,7 @@ pipeline {
                     echo 'Deploying ReactJS application to NGINX using Ansible...'
                     
                     // Copy artifact to Ansible machine (if not already there)
-                    // Execute Ansible playbook files
+                    // Execute Ansible playbook
                     sh """
                     sudo ansible-playbook ${PLAYBOOK_FILE} -i ${INVENTORY_FILE}
                     """
